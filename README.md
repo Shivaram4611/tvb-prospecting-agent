@@ -17,7 +17,7 @@ An autonomous venture-intelligence agent engineered for **The Venture Build (TVB
 
 ## Deployment Setup
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Shivaram4611/tvb-prospecting-agent.git
 cd tvb-prospecting-agent
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
