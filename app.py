@@ -1,7 +1,7 @@
 import os
+from agent import TVBProspectingAgent
 import pandas as pd
 import streamlit as st
-from agent import TVBProspectingAgent
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -54,26 +54,59 @@ with st.sidebar:
   st.title("Scout Parameters")
   st.markdown("Configure autonomous targeting parameters for **TVB**.")
 
-  tavily_default = st.secrets.get(
+  # Read backend secrets securely (without printing them to the screen)
+  default_tavily = st.secrets.get(
       "TAVILY_API_KEY", os.getenv("TAVILY_API_KEY", "")
   )
-  gemini_default = st.secrets.get(
+  default_gemini = st.secrets.get(
       "GEMINI_API_KEY", os.getenv("GEMINI_API_KEY", "")
   )
 
-  with st.expander("🔑 API Credentials", expanded=not bool(tavily_default)):
-    tavily_key = st.text_input(
+  # Secure credential status display
+  if default_tavily and default_gemini:
+    st.success("🔒 System API Keys Configured")
+  else:
+    st.warning("⚠️ No system keys detected. Enter credentials below.")
+
+  # Optional override expander (defaults to empty so secrets are never visible)
+  with st.expander(
+      "🔑 API Credentials Override",
+      expanded=not bool(default_tavily and default_gemini),
+  ):
+    user_tavily = st.text_input(
         "Tavily API Key",
-        value=tavily_default,
+        value="",
         type="password",
-        key="tavily_input",
+        placeholder=(
+            "Using configured system key..."
+            if default_tavily
+            else "Enter Tavily key (tvly-...)"
+        ),
+        help=(
+            "Leave blank to use the backend key securely configured in"
+            " secrets.toml."
+        ),
+        key="tavily_override_input",
     )
-    gemini_key = st.text_input(
+    user_gemini = st.text_input(
         "Gemini API Key",
-        value=gemini_default,
+        value="",
         type="password",
-        key="gemini_input",
+        placeholder=(
+            "Using configured system key..."
+            if default_gemini
+            else "Enter Gemini key (AIza...)"
+        ),
+        help=(
+            "Leave blank to use the backend key securely configured in"
+            " secrets.toml."
+        ),
+        key="gemini_override_input",
     )
+
+  # Resolve credentials: user input takes priority, otherwise use backend secrets
+  tavily_key = user_tavily.strip() if user_tavily.strip() else default_tavily
+  gemini_key = user_gemini.strip() if user_gemini.strip() else default_gemini
 
   target_count = st.slider(
       "Target Verified Leads",
@@ -107,7 +140,10 @@ st.caption(
 # --- Engine Execution Logic ---
 if start_btn:
   if not tavily_key or not gemini_key:
-    st.error("Missing API Credentials. Configure keys in the sidebar or secrets.toml.")
+    st.error(
+        "Missing API Credentials. Configure keys in the sidebar or"
+        " secrets.toml."
+    )
   else:
     agent = TVBProspectingAgent(
         tavily_api_key=tavily_key, gemini_api_key=gemini_key
@@ -165,7 +201,10 @@ if start_btn:
 
       progress.progress(1.0, text="Pipeline execution complete.")
       status.update(
-          label=f"Pipeline Completed: {len(qualified)} Verified Scale-Ups Acquired",
+          label=(
+              f"Pipeline Completed: {len(qualified)} Verified Scale-Ups"
+              " Acquired"
+          ),
           state="complete",
           expanded=False,
       )
@@ -203,13 +242,11 @@ if st.session_state.leads_data:
 
   industries = ["All"] + sorted(
       list(
-          set(
-              [
-                  ind.strip()
-                  for sub in df["industry_or_orbit"].dropna()
-                  for ind in sub.split(",")
-              ]
-          )
+          set([
+              ind.strip()
+              for sub in df["industry_or_orbit"].dropna()
+              for ind in sub.split(",")
+          ])
       )
   )
   with filter_col2:
@@ -273,7 +310,8 @@ if st.session_state.leads_data:
         with card_cols[c_idx]:
           with st.container(border=True):
             st.markdown(
-                f"### {row['company_name']} <span class='badge'>{row['hq_country']}</span>",
+                f"### {row['company_name']} <span"
+                f" class='badge'>{row['hq_country']}</span>",
                 unsafe_allow_html=True,
             )
             st.caption(
