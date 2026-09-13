@@ -280,6 +280,12 @@ if st.session_state.leads_data:
   )
 
   with tab_table:
+    # Ensure full external URL format to avoid internal Streamlit path routing
+    table_df = filtered_df.copy()
+    table_df["website_url"] = table_df["website"].apply(
+        lambda w: f"https://{w}" if w and not str(w).startswith("http") else w
+    )
+
     display_cols = [
         "company_name",
         "description",
@@ -289,14 +295,18 @@ if st.session_state.leads_data:
         "founder_name",
         "founder_role",
         "verified_email",
-        "website",
+        "website_url",
     ]
     st.dataframe(
-        filtered_df[display_cols],
+        table_df[display_cols],
         use_container_width=True,
         hide_index=True,
         column_config={
-            "website": st.column_config.LinkColumn("Website"),
+            "website_url": st.column_config.LinkColumn(
+                "Website",
+                display_text=r"https?://(?:www\.)?([^/]+)",
+                help="Click to open external company website in a new tab",
+            ),
             "verified_email": st.column_config.TextColumn("Verified Email 📧"),
         },
     )
@@ -324,10 +334,20 @@ if st.session_state.leads_data:
                 f"👤 **Executive:** {row['founder_name']} (*{row['founder_role']}*)"
             )
             st.markdown(f"📬 **Deliverable Email:** `{row['verified_email']}`")
-            if row["website"]:
-              st.link_button(
-                  f"Visit {row['website']}", f"https://{row['website']}"
+
+            raw_web = str(row["website"]).strip() if row["website"] else ""
+            if raw_web:
+              ext_url = (
+                  raw_web
+                  if raw_web.startswith("http")
+                  else f"https://{raw_web}"
               )
+              clean_label = (
+                  raw_web.replace("https://", "")
+                  .replace("http://", "")
+                  .split("/")[0]
+              )
+              st.link_button(f"Visit {clean_label} ↗", ext_url)
 
   # 4. Action / Export Row
   st.divider()
