@@ -16,7 +16,7 @@ An autonomous venture-intelligence agent engineered for **The Venture Build (TVB
 4. **Interactive Dashboard:** Self-serve Streamlit application featuring live trigger controls and CSV export.
 
 ## Live Link
-[Live Demo in streamlit](https://tvb-prospecting-agent.streamlit.app/)
+[Live Demo on Streamlit Cloud](https://tvb-prospecting-agent.streamlit.app/)
 
 ## Deployment Setup
 ```bash
