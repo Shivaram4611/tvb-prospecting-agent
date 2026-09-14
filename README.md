@@ -15,6 +15,9 @@ An autonomous venture-intelligence agent engineered for **The Venture Build (TVB
 3. **Executive Contact Resolution:** Generates and validates founder email addresses via DNS MX records.
 4. **Interactive Dashboard:** Self-serve Streamlit application featuring live trigger controls and CSV export.
 
+## Live Link
+[Live Demo in streamlit](https://tvb-prospecting-agent.streamlit.app/)
+
 ## Deployment Setup
 ```bash
 git clone https://github.com/Shivaram4611/tvb-prospecting-agent.git
